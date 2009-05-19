@@ -1,0 +1,27 @@
+---
+name: Catalyst-Controller-Combine
+version: 0.01
+author: []
+abstract: Combine JS/CSS Files
+license: perl
+resources:
+  license: ~
+requires:
+  Catalyst::Runtime: 5.80
+  File::stat: 1.00
+  List::Util: 1.19
+  MIME::Types: 1.27
+  Path::Classs: 0.09
+  Test::Builder: 0.86
+  Test::Builder::Tester: 1.18
+  Test::Harness: 3.14
+  Test::More: 0.86
+  perl: 5.8.8
+provides:
+  Catalyst::Controller::Combine:
+    file: lib/Catalyst/Controller/Combine.pm
+    version: 0.01
+generated_by: Module::Build version 0.31
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.2.html
+  version: 1.2

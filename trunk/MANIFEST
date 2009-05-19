@@ -1,0 +1,11 @@
+Changes
+MANIFEST
+Makefile.PL
+README
+lib/Catalyst/Controller/Combine.pm
+lib/Catalyst/Helper/Controller/Combine.pm
+t/0-basic.t
+t/1-inherit.t
+t/root/static/js/js1.js
+t/root/static/js/js2.js
+META.yml
