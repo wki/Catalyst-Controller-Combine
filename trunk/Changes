@@ -1,0 +1,26 @@
+Revision history for Catalyst-Controller-Combine
+
+0.06    2009-07-11
+        * more docs added
+
+0.05    2009-04-29
+        * added a test with a TestApp
+          testing uri_for() method
+          testing dependency handling
+          testing retrieval
+          testing minification
+
+0.04    2009-04-28
+        * simplified C::Component::Combine BUILD method
+        * expanded accessor definitions with default values
+        * expanded C::Helper::Component::Combine
+          added commented Minifier examples
+          added meaningful config section
+
+0.03    2009-04-27
+        * corrected the handling for global configuration directives.
+        
+0.02    2009-04-26
+        * added C::Helper::Component::Combine to allow create-script to work.
+        
+0.01    2009-04-25
