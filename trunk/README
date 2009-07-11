@@ -1,20 +1,77 @@
 NAME
     Catalyst::Controller::Combine - Combine JS/CSS Files
 
+SYNOPSIS
+        # use the helper to create your Controller
+        script/myapp_create.pl controller Js Combine
+    
+        # or:
+        script/myapp_create.pl controller Css Combine
+
+        # DONE. READY FOR USE.
+
+        # Just use it in your template:
+        # will deliver all JavaScript files concatenated (in Js-Controller)
+        <script type="text/javascript" src="/js/file1/file2/.../filex.js"></script>
+
+        # will deliver all CSS files concatenated (in Css-Controller)
+        <link rel="stylesheet" type="text/css" href="/css/file1/file2/.../filex.css" />
+
+        # in the generated controller you may add this to allow minification
+        # the trick behind is the existence of a sub named 'minify' 
+        # inside your Controller.
+    
+        use JavaScript::Minifier::XS qw(minify);
+            # or:
+        use CSS::Minifier::XS qw(minify);
+    
 DESCRIPTION
     Catalyst Controller that concatenates (and optionally minifies) static
     files like JavaScript or CSS into a single request. Depending on your
     configuration, files are also auto-added with a simple
     dependency-management.
 
-  CONFIGURATION
+    The basic idea behind concatenation is that all files one Controller
+    should handle reside in a common directory.
 
-    A simple configuration of a dereived Controller could look like this:
+    Assuming you have a directory with JavaScript files like:
+
+        root/static/js
+         |
+         +-- prototype.js
+         |
+         +-- helpers.js
+         |
+         +-- site.js
+
+    Then you could combine all files in a single tag (assuming your
+    directory for the Controller is set to 'static/js' -- which is the
+    default):
+
+        <script type="text/javascript" src="/js/prototype/helpers/site.js"></script>
+
+    If you add a dependency into your Controller's config like:
+
+        __PACKAGE__->config(
+            ...
+            depend => {
+                helpers => 'prototype',
+                site    => 'helpers',
+            },
+            ...
+        );
+
+    Now, the URI to retrieve the very same JavaScript files can be
+    shortened:
+
+        <script type="text/javascript" src="/js/site.js"></script>
+
+CONFIGURATION
+    A simple configuration of your Controller could look like this:
 
         __PACKAGE__->config(
             # the directory to look for files
-            # defaults to (<<action_namespace>> OR 'static') / <<action_namespace>>
-            #          which is first found as a directory
+            # defaults to 'static/<<action_namespace>>'
             dir => 'static/js',
         
             # the (optional) file extension in the URL
@@ -37,17 +94,18 @@ DESCRIPTION
         
             # mimetype of response if wanted
             # will be guessed from extension if possible and not given
+            # falls back to 'text/plain' if not guessable
             mimetype => 'application/javascript',
         );
 
 METHODS
   BUILD
 
-    constructor
+    constructor for this Moose-driven class
 
-  do_combine
+  do_combine :Action
 
-    the `do_combine' method may be used like this (eg in
+    the `do_combine' Action-method may be used like this (eg in
     YourApp:Controller:Js):
 
         sub default :Path {
@@ -81,7 +139,7 @@ METHODS
     maps to the path_prefix of your actual controller and consumes the
     entire URI
 
-  uri_for
+  uri_for :Private
 
     handle uri_for requests (not intentionally a Catalyst-feature :-)
     requires a patched `uri_for' method in your app! my one looks like the
@@ -108,15 +166,33 @@ METHODS
                 #
                 return $c->component($path->class)->uri_for($c, $path, @args);
             }
-    
+        
             #
             # otherwise fall back into the well-known behavior
             #
             $c->next::method($path, @args);
         }
+    
+        # alternatively, using Catalyst 5.8 you may do this:
+        around 'uri_for' => sub {
+            my $orig = shift;
+            my $c = shift;
+            my $path = shift;
+            my @args = @_;
+        
+            if (blessed($path) && $path->class && $path->class->can('uri_for')) {
+                #
+                # let the controller handle this for us
+                #   believe me, it can do it!
+                #
+                return $c->component($path->class)->uri_for($c, $path, @args);
+            }
+        
+            return $c->$orig($path, @args);
+        };
 
 AUTHOR
-    Wolfgang Kinkeldei
+    Wolfgang Kinkeldei, <wolfgang@kinkeldei.de>
 
 LICENSE
     This library is free software, you can redistribute it and/or modify it

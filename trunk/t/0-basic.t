@@ -1,4 +1,4 @@
-use Test::More 'no_plan';
+use Test::More tests => 36;
 use Test::Exception;
 use Catalyst ();
 use FindBin;

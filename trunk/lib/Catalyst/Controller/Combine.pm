@@ -7,7 +7,7 @@ BEGIN { extends 'Catalyst::Controller'; };
 use File::stat;
 use List::Util qw(max);
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 has dir       => (is => 'rw',
                   default => sub { 'static/' . shift->action_namespace });
@@ -63,6 +63,39 @@ Catalyst::Controller::Combine - Combine JS/CSS Files
 Catalyst Controller that concatenates (and optionally minifies) static files
 like JavaScript or CSS into a single request. Depending on your configuration,
 files are also auto-added with a simple dependency-management.
+
+The basic idea behind concatenation is that all files one Controller should
+handle reside in a common directory.
+
+Assuming you have a directory with JavaScript files like:
+
+    root/static/js
+     |
+     +-- prototype.js
+     |
+     +-- helpers.js
+     |
+     +-- site.js
+
+Then you could combine all files in a single tag (assuming your directory for
+the Controller is set to 'static/js' -- which is the default):
+
+    <script type="text/javascript" src="/js/prototype/helpers/site.js"></script>
+
+If you add a dependency into your Controller's config like:
+
+    __PACKAGE__->config(
+        ...
+        depend => {
+            helpers => 'prototype',
+            site    => 'helpers',
+        },
+        ...
+    );
+
+Now, the URI to retrieve the very same JavaScript files can be shortened:
+
+    <script type="text/javascript" src="/js/site.js"></script>
 
 =head1 CONFIGURATION
 

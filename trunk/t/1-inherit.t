@@ -1,4 +1,4 @@
-use Test::More 'no_plan';
+use Test::More tests => 20;
 use Test::Exception;
 use Catalyst ();
 use Catalyst::Controller::Combine ();

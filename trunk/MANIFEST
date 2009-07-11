@@ -6,6 +6,9 @@ lib/Catalyst/Controller/Combine.pm
 lib/Catalyst/Helper/Controller/Combine.pm
 t/0-basic.t
 t/1-inherit.t
+t/2-uri.t
+t/lib/TestApp/Controller/Js.pm
+t/lib/TestApp.pm
 t/root/static/js/js1.js
 t/root/static/js/js2.js
 META.yml
