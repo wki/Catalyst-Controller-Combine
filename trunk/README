@@ -100,11 +100,9 @@ CONFIGURATION
 
 METHODS
   BUILD
-
     constructor for this Moose-driven class
 
   do_combine :Action
-
     the `do_combine' Action-method may be used like this (eg in
     YourApp:Controller:Js):
 
@@ -133,14 +131,12 @@ METHODS
     will do the job and auto-minify the stream.
 
   default :Path
-
     a standard handler for your application's controller
 
     maps to the path_prefix of your actual controller and consumes the
     entire URI
 
   uri_for :Private
-
     handle uri_for requests (not intentionally a Catalyst-feature :-)
     requires a patched `uri_for' method in your app! my one looks like the
     sub below.

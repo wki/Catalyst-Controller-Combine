@@ -8,10 +8,8 @@ use Path::Class::File;
 # a simple package
 {
     package MyApp::Controller::Js;
-    use strict;
-    use warnings;
-    use parent 'Catalyst::Controller::Combine';
-    use JavaScript::Minifier::XS qw(minify);
+    use Moose;
+    extends 'Catalyst::Controller::Combine';
 
     __PACKAGE__->config(
         # dir => 'static/js', # redundant, defaults to static/<<action_namespace>>

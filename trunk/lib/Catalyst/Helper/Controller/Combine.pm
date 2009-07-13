@@ -80,9 +80,8 @@ __DATA__
 __compclass__
 package [% class %];
 
-use strict;
-use warnings;
-use parent 'Catalyst::Controller::Combine';
+use Moose;
+BEGIN { extends 'Catalyst::Controller::Combine'; }
 
 [% minifier %]
 
