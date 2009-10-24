@@ -23,7 +23,7 @@ can_ok('Catalyst::Controller::Combine' => qw(_collect_files _check_dependencies)
 
 # instantiate
 my $controller;
-lives_ok { $controller = Catalyst->setup_component('Catalyst::Controller::Combine') } 'setup component worked';
+lives_ok { $controller = $c->setup_component('Catalyst::Controller::Combine') } 'setup component worked';
 
 is(ref($controller), 'Catalyst::Controller::Combine', 'controller class looks good');
 

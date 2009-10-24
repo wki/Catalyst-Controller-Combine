@@ -14,7 +14,7 @@ __PACKAGE__->config(
 );
 
 __PACKAGE__->setup();
-
+ 
 around 'uri_for' => sub {
     my $orig = shift;
     my $c = shift;

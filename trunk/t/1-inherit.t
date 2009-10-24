@@ -28,7 +28,7 @@ $c->setup_log();
 $c->setup_home("$FindBin::Bin");
 
 my $controller;
-lives_ok { $controller = Catalyst->setup_component('MyApp::Controller::Js') } 'setup component worked';
+lives_ok { $controller = $c->setup_component('MyApp::Controller::Js') } 'setup component worked';
 
 is(ref($controller), 'MyApp::Controller::Js', 'controller class looks good');
 ok($controller->isa('Catalyst::Controller::Combine'), 'is a Catalyst::Controller::Combine');

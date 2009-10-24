@@ -10,9 +10,11 @@ use List::Util qw(max);
 our $VERSION = '0.07';
 
 has dir       => (is => 'rw',
-                  default => sub { 'static/' . shift->action_namespace });
+                  default => sub { 'static/' . shift->action_namespace },
+                  lazy => 1);
 has extension => (is => 'rw',
-                  default => sub { shift->action_namespace });
+                  default => sub { shift->action_namespace },
+                  lazy => 1);
 has depend    => (is => 'rw',
                   default => sub { return {} });
 has mimetype  => (is => 'rw',
@@ -22,7 +24,8 @@ has mimetype  => (is => 'rw',
                                     return $ext eq 'js'  ? 'application/javascript'
                                          : $ext eq 'css' ? 'text/css'
                                          : 'text/plain';
-                                 });
+                                 },
+                  lazy => 1);
 has minifier  => (is => 'rw',
                   default => 'minify');
 
@@ -142,15 +145,17 @@ sub BUILD {
     my $self = shift;
     my $c = $self->_app;
 
-    $c->log->warn(ref($self) . " - directory '" . $self->dir . "' not present.")
-        if (!-d $c->path_to('root', $self->dir));
-    
-    $c->log->debug(ref($self) . " - " .
-                   "directory: '" . $self->dir . "', " .
-                   "extension: '" . $self->extension . "', " .
-                   "mimetype: '" . $self->mimetype . "', " .
-                   "minifier: '" . $self->minifier . "'")
-        if ($c->debug);
+    ### THIS STUPID BLOCK BREAKS TESTS UNDER DIFFERENT C::MOP / MOOSE VERSIONS...
+    ### $self->dir wants to know action_namespace...
+    # $c->log->warn(ref($self) . " - directory '" . $self->dir . "' not present.")
+    #     if (!-d $c->path_to('root', $self->dir));
+    # 
+    # $c->log->debug(ref($self) . " - " .
+    #                "directory: '" . $self->dir . "', " .
+    #                "extension: '" . $self->extension . "', " .
+    #                "mimetype: '" . $self->mimetype . "', " .
+    #                "minifier: '" . $self->minifier . "'")
+    #     if ($c->debug);
 }
 
 =head2 do_combine :Action

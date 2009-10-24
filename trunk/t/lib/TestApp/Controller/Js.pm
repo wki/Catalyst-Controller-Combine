@@ -1,6 +1,7 @@
 package TestApp::Controller::Js;
 
 use Moose;
+# use base 'Catalyst::Controller::Combine';
 BEGIN { extends 'Catalyst::Controller::Combine'; }
 
 __PACKAGE__->config(

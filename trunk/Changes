@@ -1,5 +1,13 @@
 Revision history for Catalyst-Controller-Combine
 
+0.08    2009-10-24
+        Tests break
+        * Moose 0.85 / Class::MOP 0.88 were known to work
+        * Moose 0.89 / Class::MOP 0.92 breaks tests and inhibits things from working
+        * Moose 0.92 / Class::MOP 0.94 will work again. well mostly :-(
+        * reason was accessing 'dir' inside BUILD()
+          which required other attributes not yet present at this moment
+
 0.07    2009-07-13
         * updated tests to match META requirements (thanks to CPAN testers)
           
