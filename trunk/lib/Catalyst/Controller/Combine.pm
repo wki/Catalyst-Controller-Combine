@@ -7,7 +7,7 @@ BEGIN { extends 'Catalyst::Controller'; };
 use File::stat;
 use List::Util qw(max);
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 has dir       => (is => 'rw',
                   default => sub { 'static/' . shift->action_namespace },

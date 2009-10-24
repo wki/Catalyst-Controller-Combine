@@ -1,6 +1,6 @@
 ---
 name: Catalyst-Controller-Combine
-version: 0.07
+version: 0.08
 author:
   - 'Wolfgang Kinkeldei <wki@cpan.org>'
 abstract: Combine JS/CSS Files
