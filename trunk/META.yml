@@ -21,14 +21,14 @@ requires:
   Test::More: 0.86
   perl: v5.8.8
 configure_requires:
-  Module::Build: 0.34
+  Module::Build: 0.35
 provides:
   Catalyst::Controller::Combine:
     file: lib/Catalyst/Controller/Combine.pm
-    version: 0.07
+    version: 0.08
   Catalyst::Helper::Controller::Combine:
     file: lib/Catalyst/Helper/Controller/Combine.pm
-generated_by: Module::Build version 0.34
+generated_by: Module::Build version 0.35
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
