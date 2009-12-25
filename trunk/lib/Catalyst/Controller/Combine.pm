@@ -137,6 +137,10 @@ A simple configuration of your Controller could look like this:
         mimetype => 'application/javascript',
     );
 
+=head2 CONFIGURATION OPTIONS
+
+TODO: writeme...
+
 =head1 METHODS
 
 =head2 BUILD
