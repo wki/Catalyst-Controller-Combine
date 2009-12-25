@@ -17,6 +17,7 @@ my $build = Module::Build->new(
         'Test::More'            => '0.86',
         'Test::Exception'       => '0.27',
         'Test::Harness'         => '3.14',
+        'Text::Glob'            => '0.08',
     },
     create_makefile_pl => 'traditional',
     create_readme => 1,

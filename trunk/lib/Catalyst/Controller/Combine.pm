@@ -6,8 +6,9 @@ BEGIN { extends 'Catalyst::Controller'; };
 
 use File::stat;
 use List::Util qw(max);
+use Text::Glob qw(match_glob);
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 has dir       => (is => 'rw',
                   default => sub { 'static/' . shift->action_namespace },
@@ -25,6 +26,9 @@ has mimetype  => (is => 'rw',
                                          : $ext eq 'css' ? 'text/css'
                                          : 'text/plain';
                                  },
+                  lazy => 1);
+has replace   => (is => 'rw',
+                  default => sub { {} },
                   lazy => 1);
 has minifier  => (is => 'rw',
                   default => 'minify');
@@ -202,7 +206,18 @@ sub do_combine :Action {
     foreach my $file_path (@{$self->{files}}) {
         if (open(my $file, '<', $file_path)) {
             local $/ = undef;
-            $response .= <$file>;
+            my $file_content = <$file>;
+            
+            # do replacements if wanted
+            if (exists($self->{replacement_for}->{$file_path})) {
+                my @replacement = ( @{$self->{replacement_for}->{$file_path}} ); # simple deep-copy
+                while (my ($regex, $replace) = splice(@replacement,0,2)) {
+                    $file_content =~ s{$regex}{qq{qq{$replace}}}gmsee;
+                }
+            }
+            
+            # append to output stream
+            $response .= $file_content;
             close($file);
             $mtime = max($mtime, (stat $file_path)->mtime);
         }
@@ -327,8 +342,9 @@ sub _collect_files {
     my $c = shift;
 
     my $ext = $self->extension;
-    $self->{parts} = [];
-    $self->{files} = [];
+    $self->{parts} = [];            # list of plain file names
+    $self->{files} = [];            # list of full paths
+    $self->{replacement_for} = {};  # replacements for every full path
     $self->{seen}  = {}; # easy lookup of parts and count of dependencies
     foreach my $file (@_) {
         my $base_name = $file;
@@ -382,6 +398,17 @@ sub _check_dependencies {
             push @{$self->{parts}}, $base_name;
             push @{$self->{files}}, $file_path;
             $self->{seen}->{$base_name} = $depends;
+            
+            # check replacements
+            return if (!$self->replace || ref($self->replace) ne 'HASH' || !scalar(keys(%{$self->replace})));
+            foreach my $glob (keys(%{$self->replace})) {
+                next if (!match_glob($glob, $base_name));
+                my $replacements = $self->replace->{$glob};
+                next if (!$replacements || ref($replacements) ne 'ARRAY' || !scalar(@{$replacements}));
+                push @{$self->{replacement_for}->{$file_path}}, @{$replacements};
+            }
+            
+            # done
             return;
         }
     }

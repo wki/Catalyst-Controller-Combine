@@ -8,8 +8,8 @@ Catalyst::Helper::Controller::Combine - Helper for Combine Controllers
 
 =head1 SYNOPSIS
 
-    script/create.pl view Js Combine
-    script/create.pl view Css Combine
+    script/create.pl controller Js Combine
+    script/create.pl controller Css Combine
 
 =head1 DESCRIPTION
 
@@ -31,22 +31,40 @@ sub mk_compclass {
     my $mimetype = 'text/plain';
     my $minifier = '';
     my $depend = '';
+    my $replace = '';
     if ($ext eq 'js')  { 
         $mimetype = 'application/javascript';
         $minifier = "# uncomment if desired\n# use JavaScript::Minifier::XS qw(minify);";
+
         $depend =
+        "    # aid for the prototype users\n" .
+        "    #   --> place all .js files directly into root/static/js!\n" .
         "    #     scriptaculous => 'prototype',\n" .
         "    #     builder       => 'scriptaculous',\n" .
         "    #     effects       => 'scriptaculous',\n" .
         "    #     dragdrop      => 'effects',\n" .
         "    #     slider        => 'scriptaculous',\n" .
-        "    #     default       => 'dragdrop',";
+        "    #     default       => 'dragdrop',\n" .
+        "\n" .
+        "    # aid for the jQuery users\n" .
+        "    #   --> place all .js files including version-no directly into root/static/js!\n" .
+        "    #     'jquery.metadata'     => 'jquery-1.3.2'\n",
+        "    #     'jquery.form-2.36'    => 'jquery-1.3.2'\n",
+        "    #     'jquery.validate-1.6' => [qw(jquery.form-2.36 jquery.metadata)]\n",
+        "    #     default               => [qw(jquery.validate-1.6 jquery-ui-1.7.2)]",
     }
     if ($ext eq 'css') { 
         $mimetype = 'text/css'; 
         $minifier = "# uncomment if desired\n# use CSS::Minifier::XS qw(minify);";
+
         $depend =
+        "    #     layout  => 'jquery-ui', \n" .
         "    #     default => 'layout',";
+
+        $replace =
+        "    #                    # change jQuery UI's links to images\n" .
+        "    #                    # assumes that all images for jQuery UI reside under static/images\n" .
+        "    #     'jquery-ui' => [ qr'url\(images/' => 'url(/static/images/' ],";
     }
     
     $helper->render_file( 'compclass', $file, 
@@ -55,6 +73,7 @@ sub mk_compclass {
                               mimetype  => $mimetype,
                               minifier  => $minifier,
                               depend    => $depend,
+                              replace   => $replace,
                           } );
 }
 
@@ -95,6 +114,11 @@ __PACKAGE__->config(
     #   specify dependencies (without file extensions)
     # depend => {
 [% depend %]
+    # },
+    #
+    #   optionally specify replacements to get done
+    # replace => {
+[% replace %]
     # },
     #
     #   will be guessed from extension
