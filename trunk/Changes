@@ -1,5 +1,9 @@
 Revision history for Catalyst-Controller-Combine
 
+0.09    2010-03-13
+        * added a replace option allowing to change files on the fly
+          this can be useful eg for fixing jQuery-UI image links inside css
+
 0.08    2009-10-24
         Tests break
         * Moose 0.85 / Class::MOP 0.88 were known to work
