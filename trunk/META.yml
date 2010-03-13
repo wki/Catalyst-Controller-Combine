@@ -14,12 +14,12 @@ requires:
   List::Util: 1.19
   Moose: 0.74
   Path::Class: 0.16
-  Text::Glob: 0.08
   Test::Builder: 0.86
   Test::Builder::Tester: 1.18
   Test::Exception: 0.27
   Test::Harness: 3.14
   Test::More: 0.86
+  Text::Glob: 0.08
   perl: v5.8.8
 configure_requires:
   Module::Build: 0.35

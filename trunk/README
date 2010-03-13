@@ -98,6 +98,10 @@ CONFIGURATION
             mimetype => 'application/javascript',
         );
 
+  CONFIGURATION OPTIONS
+
+    TODO: writeme...
+
 METHODS
   BUILD
 
