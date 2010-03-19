@@ -12,6 +12,7 @@ requires 'File::stat'        => '1.00';
 requires 'List::Util'        => '1.19';
 requires 'Path::Class'       => '0.16';
 requires 'FindBin'           => '1.47';
+requires 'Text::Glob'        => '0.08';
 
 test_requires 'Test::Builder'         => '0.86';
 test_requires 'Test::Builder::Tester' => '1.18';
@@ -19,6 +20,7 @@ test_requires 'Test::More'            => '0.86';
 test_requires 'Test::Exception'       => '0.27';
 test_requires 'Test::Harness'         => '3.14';
 test_requires 'Text::Glob'            => '0.08';
+test_requires 'namespace::autoclean'  => '0.09';
 
 auto_install;
 
