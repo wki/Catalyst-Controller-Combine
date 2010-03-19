@@ -1,5 +1,11 @@
 Revision history for Catalyst-Controller-Combine
 
+0.10    2010-03-19
+        * eliminated trunk/ directory
+        * moved to Module::Install
+        * added a note about 'namespace::autoclean' and its side effects
+          with automatically determined minification
+          
 0.09    2010-03-13
         * added a replace option allowing to change files on the fly
           this can be useful eg for fixing jQuery-UI image links inside css
