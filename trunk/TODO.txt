@@ -1,6 +1,10 @@
 Things we could add
 -------------------
 
+add documentation for 'use namespace::autoclean' and not-working minification!
+
+find out clever HTTP Headers to set.
+
 add to config section:
     replace => {
                        # for every file -- how to quote '$1' ??? --> s{$regex}{qq{qq{$replace}}}ee
@@ -12,4 +16,4 @@ add to config section:
                        # just this file
         'jquery-ui' => [ ... => ... ],
     },
-    
+
