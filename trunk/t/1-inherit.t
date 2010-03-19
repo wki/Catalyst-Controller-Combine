@@ -1,4 +1,4 @@
-use Test::More tests => 20;
+use Test::More;
 use Test::Exception;
 use Catalyst ();
 use Catalyst::Controller::Combine ();
@@ -59,3 +59,5 @@ is_deeply($controller->{files},
           ["" . Path::Class::File->new($FindBin::Bin, qw(root static js js1.js)),
            "" . Path::Class::File->new($FindBin::Bin, qw(root static js js2.js))], '2 files');
 is_deeply($controller->{seen}, {js1 => 1, js2 => 0}, '2 files seen once');
+
+done_testing;

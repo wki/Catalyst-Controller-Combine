@@ -34,7 +34,7 @@ sub mk_compclass {
     my $replace = '';
     if ($ext eq 'js')  { 
         $mimetype = 'application/javascript';
-        $minifier = "# uncomment if desired\n# use JavaScript::Minifier::XS qw(minify);";
+        $minifier = "# uncomment if desired and do not import namespace::autoclean!\n# use JavaScript::Minifier::XS qw(minify);";
 
         $depend =
         "    # aid for the prototype users\n" .
@@ -55,7 +55,7 @@ sub mk_compclass {
     }
     if ($ext eq 'css') { 
         $mimetype = 'text/css'; 
-        $minifier = "# uncomment if desired\n# use CSS::Minifier::XS qw(minify);";
+        $minifier = "# uncomment if desired and do not import namespace::autoclean!\n# use CSS::Minifier::XS qw(minify);";
 
         $depend =
         "    #     layout  => 'jquery-ui', \n" .
@@ -100,7 +100,7 @@ __compclass__
 package [% class %];
 
 use Moose;
-BEGIN { extends 'Catalyst::Controller::Combine'; }
+BEGIN { extends 'Catalyst::Controller::Combine' }
 
 [% minifier %]
 

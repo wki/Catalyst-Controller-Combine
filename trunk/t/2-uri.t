@@ -1,4 +1,4 @@
-use Test::More tests => 17;
+use Test::More;
 use FindBin;
 use lib "$FindBin::Bin/lib";
 
@@ -101,3 +101,4 @@ like( get('/js/js1.js'),
 # suppress warning
 my $dummy = *{TestApp::Controller::Js::minify};
 
+done_testing;

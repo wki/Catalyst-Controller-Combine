@@ -1,4 +1,4 @@
-use Test::More 'no_plan'; #tests => 20;
+use Test::More;
 use Test::Exception;
 use Catalyst ();
 use Catalyst::Controller::Combine ();
@@ -36,5 +36,7 @@ $c->setup_home("$FindBin::Bin");
 
 my $controller;
 lives_ok { $controller = $c->setup_component('MyApp::Controller::Css') } 'setup component worked';
+
+done_testing;
 
 ### TODO: append a reasonable test...

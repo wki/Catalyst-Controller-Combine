@@ -1,8 +1,6 @@
 Things we could add
 -------------------
 
-add documentation for 'use namespace::autoclean' and not-working minification!
-
 find out clever HTTP Headers to set.
 
 add to config section:

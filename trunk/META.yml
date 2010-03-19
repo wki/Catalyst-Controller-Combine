@@ -1,6 +1,6 @@
 ---
 name: Catalyst-Controller-Combine
-version: 0.09
+version: 0.10
 author:
   - 'Wolfgang Kinkeldei <wki@cpan.org>'
 abstract: Combine JS/CSS Files
@@ -26,7 +26,7 @@ configure_requires:
 provides:
   Catalyst::Controller::Combine:
     file: lib/Catalyst/Controller/Combine.pm
-    version: 0.09
+    version: 0.10
   Catalyst::Helper::Controller::Combine:
     file: lib/Catalyst/Helper/Controller/Combine.pm
 generated_by: Module::Build version 0.35

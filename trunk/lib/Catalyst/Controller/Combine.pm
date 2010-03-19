@@ -8,7 +8,7 @@ use File::stat;
 use List::Util qw(max);
 use Text::Glob qw(match_glob);
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 has dir       => (is => 'rw',
                   default => sub { 'static/' . shift->action_namespace },
@@ -420,6 +420,14 @@ sub _check_dependencies {
     $c->log->warn("$base_name --> NOT EXISTING, ignored");
     return;
 }
+
+=head1 GOTCHAS
+
+Please do not use C<namespace::autoclean> if you intend to enable a minifier.
+The black magic behind the scenes tries to determine your intention to minify
+by searching for a sub called C<minify> inside the controller's package.
+However, this sub is imported by eg C<JavaScript::Minifier::XS> and will be
+kicked out of the controller by C<namespace::autoclean>.
 
 =head1 AUTHOR
 

@@ -1,4 +1,4 @@
-use Test::More tests => 36;
+use Test::More;
 use Test::Exception;
 use Catalyst ();
 use FindBin;
@@ -83,3 +83,5 @@ is_deeply($controller->{seen}, {js1 => 0, js2 => 0}, '2 file seen once');
 #
 lives_ok {$controller->do_combine($c, 'js1')} 'do_combine #1 works';
 like($c->response->body, qr{/\* \s javascript \s 1 \s \*\/\s*}xms, 'response looks good');
+
+done_testing;
