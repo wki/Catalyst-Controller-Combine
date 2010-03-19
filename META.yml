@@ -1,0 +1,37 @@
+---
+abstract: 'Combine JS/CSS Files'
+author:
+  - 'Wolfgang Kinkeldei <wolfgang@kinkeldei.de>'
+build_requires:
+  ExtUtils::MakeMaker: 6.42
+  Test::Builder: 0.86
+  Test::Builder::Tester: 1.18
+  Test::Exception: 0.27
+  Test::Harness: 3.14
+  Test::More: 0.86
+  Text::Glob: 0.08
+configure_requires:
+  ExtUtils::MakeMaker: 6.42
+distribution_type: module
+generated_by: 'Module::Install version 0.91'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Catalyst-Controller-Combine
+no_index:
+  directory:
+    - inc
+    - t
+requires:
+  Catalyst::Runtime: 5.80
+  File::stat: 1.00
+  FindBin: 1.47
+  List::Util: 1.19
+  Moose: 0.74
+  Path::Class: 0.16
+  perl: 5.8.0
+resources:
+  license: http://dev.perl.org/licenses/
+  repository: http://github.com/wki/Catalyst-Controller-Combine.git
+version: 0.10
