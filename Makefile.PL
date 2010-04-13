@@ -22,9 +22,12 @@ test_requires 'Test::Harness'         => '3.14';
 test_requires 'Text::Glob'            => '0.08';
 test_requires 'namespace::autoclean'  => '0.09';
 
+# for expires feature
+test_requires 'DateTime'              => 0;
+test_requires 'DateTime::Duration'    => 0;
+
 auto_install;
 
 repository 'http://github.com/wki/Catalyst-Controller-Combine.git';
 
 WriteAll;
-
