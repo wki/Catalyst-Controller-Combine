@@ -10,8 +10,6 @@ use Text::Glob qw(match_glob);
 use DateTime;
 use DateTime::Duration;
 
-our $VERSION = '0.11';
-
 has dir       => (is => 'rw',
                   default => sub { 'static/' . shift->action_namespace },
                   lazy => 1);
@@ -36,9 +34,8 @@ has minifier  => (is => 'rw',
                   default => 'minify');
 has expire    => (is => 'rw',
                   default => 0);
-has expire_in => ( is => 'rw',
-                   default => 60 * 60 * 24 * 365 * 3,  # 3 years
-                 );
+has expire_in => (is => 'rw',
+                  default => 60 * 60 * 24 * 365 * 3); # 3 years
 
 
 =head1 NAME

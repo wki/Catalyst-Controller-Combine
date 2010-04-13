@@ -126,6 +126,12 @@ __PACKAGE__->config(
     #
     #   if you want another minifier change this
     # minifier => 'minify',
+    #
+    #   uncomment if you want to get the 'expire' header set (default:off)
+    # expire => 1,
+    #
+    #   set a different value if wanted
+    # expire_in => 60 * 60 * 24 * 365 * 3, # 3 years
 );
 
 #

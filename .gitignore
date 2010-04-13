@@ -7,3 +7,5 @@ pm_to_blib
 MYMETA.yml
 inc/
 *.bak
+Catalyst-Controller-Combine-*
+Catalyst-Controller-Combine-*/

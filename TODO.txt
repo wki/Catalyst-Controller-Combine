@@ -1,9 +1,15 @@
 Things we could add
 -------------------
 
-find out clever HTTP Headers to set.
+- document examples for pseudo-versioning by adding a version-number into URL
 
-add to config section:
+- looks like uri_for() magic stops working after some Moose version. find out.
+
+## done 2010-04-13 by Phil Soehnlein. 'Expires' is cool.
+- find out clever HTTP Headers to set.
+
+### done.
+- add to config section:
     replace => {
                        # for every file -- how to quote '$1' ??? --> s{$regex}{qq{qq{$replace}}}ee
         '*'         => [ 'url\\(images/([^)]+)\\)' => 'url(/static/images/$1)' ],
