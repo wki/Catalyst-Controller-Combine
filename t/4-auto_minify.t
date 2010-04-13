@@ -18,7 +18,6 @@ like( get('/jsmin/js1.js'),
       qr{\A \# \s+ /\* \s+ javascript \s+ 1 \s+ \*/ \s+ \# \s* \z}xms,
       'minified JavaScript looks OK' );
 
-
 #
 # now see if the failing controller really fails
 # well it does not fail, it does not minify

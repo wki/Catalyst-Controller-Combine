@@ -10,6 +10,9 @@ Revision history for Catalyst-Controller-Combine
         * moved to Module::Install
         * added a note about 'namespace::autoclean' and its side effects
           with automatically determined minification
+        * fixed a test that failed on Windows because path separator
+          was hardcoded and wrong for this platform
+        * added more tests
           
 0.09    2010-03-13
         * added a replace option allowing to change files on the fly

@@ -10,6 +10,7 @@ build_requires:
   Test::Harness: 3.14
   Test::More: 0.86
   Text::Glob: 0.08
+  namespace::autoclean: 0.09
 configure_requires:
   ExtUtils::MakeMaker: 6.42
 distribution_type: module
@@ -30,6 +31,7 @@ requires:
   List::Util: 1.19
   Moose: 0.74
   Path::Class: 0.16
+  Text::Glob: 0.08
   perl: 5.8.0
 resources:
   license: http://dev.perl.org/licenses/
