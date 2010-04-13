@@ -49,7 +49,10 @@ is_deeply($controller->{seen}, {js1 => 0}, '1 file seen once');
 # case 2: one file, no extension given -- dependency should add one
 lives_ok {$controller->_collect_files($c, 'js2')} 'collect #2 works';
 is_deeply($controller->{parts}, ['js1','js2'], '2 parts');
-is_deeply($controller->{files}, ["$FindBin::Bin/root/static/js/js1.js","$FindBin::Bin/root/static/js/js2.js"], '2 files');
+is_deeply($controller->{files}, 
+          ["" . Path::Class::File->new($FindBin::Bin, qw(root static js js1.js)),
+           "" . Path::Class::File->new($FindBin::Bin, qw(root static js js2.js))], '2 files');
+    # "$FindBin::Bin/root/static/js/js1.js","$FindBin::Bin/root/static/js/js2.js"], '2 files');
 is_deeply($controller->{seen}, {js1 => 1, js2 => 0}, '2 files seen once');
 
 # case 3: two files, no extension given

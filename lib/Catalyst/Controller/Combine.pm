@@ -8,7 +8,7 @@ use File::stat;
 use List::Util qw(max);
 use Text::Glob qw(match_glob);
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 has dir       => (is => 'rw',
                   default => sub { 'static/' . shift->action_namespace },
