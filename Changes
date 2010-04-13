@@ -4,6 +4,8 @@ Revision history for Catalyst-Controller-Combine
         * fixed a bug that wrongly compared paths during test
           this made one test fail under MS-Windows.
           -- Thanks, CPAN-Testers!
+        * pulled forked changes by Phil Soehnlein
+          introducing expires headers, Thanks.
 
 0.10    2010-03-19
         * eliminated trunk/ directory
