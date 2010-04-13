@@ -36,18 +36,8 @@ lives_ok { $controller = $c->setup_component('MyApp::Controller::Js') } 'setup c
 #
 # check if expires header is sent, if feature isn't turned on
 #
-eval {
-    $controller->do_combine($c, 'js1');
-    if (!$c->response->header('expires')) {
-        ok("expires header not sent, if feature not active");
-    }
-    else {
-        die;
-    }
-};
-if ($@) {
-    fail("expires header not sent, if feature not active");
-}
+$controller->do_combine($c, 'js1');
+ok(!$c->response->header('expires'), "expires header not sent, if feature not active");
 
 
 # okay, let's check the real stuff, turn this feature one
@@ -59,41 +49,22 @@ $controller = $c->setup_component('MyApp::Controller::Js');
 #
 # combine and check if expire header is set and correct (no expire_in is explicitely set)
 #
-eval {
-    $controller->do_combine($c, 'js1');
-    my $expected_date_str = (DateTime->now + DateTime::Duration->new(seconds => $controller->{expire_in}))->strftime( "%a, %d %b %Y %H:%M:%S GMT" );
-    if ($c->response->header('expires') && $c->response->header('expires') eq $expected_date_str) {
-        ok('expires in "standard expire delta"');
-    }
-    else {
-        die;
-    }
-};
-if ($@) {
-    print $@;
-    fail('expires in "standard expire delta"');
-}
+$controller->do_combine($c, 'js1');
+my $expected_date_str = (DateTime->now + DateTime::Duration->new(seconds => $controller->{expire_in}))->strftime( "%a, %d %b %Y %H:%M:%S GMT" );
+ok($c->response->header('expires') && $c->response->header('expires') eq $expected_date_str,
+   'expires in "standard expire delta"');
 
 
 
 #
 # combine and check if expire header is set and correct (expire_in = 60 minutes)
 #
-eval {
-    MyApp::Controller::Js->config->{expire_in} = 60 * 60; # one hour
-    $controller = $c->setup_component('MyApp::Controller::Js');
-    $controller->do_combine($c, 'js1');
-    my $expected_date_str = (DateTime->now + DateTime::Duration->new(seconds => MyApp::Controller::Js->config->{expire_in}))->strftime( "%a, %d %b %Y %H:%M:%S GMT" );
-    if ($c->response->header('expires') && $c->response->header('expires') eq $expected_date_str) {
-        ok('expires in one hour');
-    }
-    else {
-        die;
-    }
-};
-if ($@) {
-    fail('expires in one hour');
-}
+MyApp::Controller::Js->config->{expire_in} = 60 * 60; # one hour
+$controller = $c->setup_component('MyApp::Controller::Js');
+$controller->do_combine($c, 'js1');
+my $expected_date_str = (DateTime->now + DateTime::Duration->new(seconds => MyApp::Controller::Js->config->{expire_in}))->strftime( "%a, %d %b %Y %H:%M:%S GMT" );
+ok($c->response->header('expires') && $c->response->header('expires') eq $expected_date_str,
+   'expires in one hour');
 
 
 
