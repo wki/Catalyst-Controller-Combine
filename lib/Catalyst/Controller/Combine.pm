@@ -4,6 +4,7 @@ use Moose;
 # w/o BEGIN, :attrs will not work
 BEGIN { extends 'Catalyst::Controller'; };
 
+use Path::Class ();
 use File::stat;
 use List::Util qw(max);
 use Text::Glob qw(match_glob);
@@ -413,7 +414,12 @@ sub _check_dependencies {
     #
     # add the file
     #
-    my $path = $c->path_to('root', $self->dir, $base_name);
+    my $path = $c->path_to('root', $self->dir, $base_name)->resolve();
+    
+    # check for security violation
+    Path::Class::dir($c->path_to('root'), $self->dir())->subsumes(Path::Class::file($path)->dir())
+        or die 'security violation - tried to open file outside of controllers directory: ' . $self->dir();
+    
     foreach my $file_path ($path, "$path.$ext") {
         if (-f $file_path) {
             push @{$self->{parts}}, $base_name;

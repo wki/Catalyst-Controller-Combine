@@ -62,7 +62,7 @@ ok($c->response->header('expires') && $c->response->header('expires') eq $expect
 MyApp::Controller::Js->config->{expire_in} = 60 * 60; # one hour
 $controller = $c->setup_component('MyApp::Controller::Js');
 $controller->do_combine($c, 'js1');
-my $expected_date_str = (DateTime->now + DateTime::Duration->new(seconds => MyApp::Controller::Js->config->{expire_in}))->strftime( "%a, %d %b %Y %H:%M:%S GMT" );
+$expected_date_str = (DateTime->now + DateTime::Duration->new(seconds => MyApp::Controller::Js->config->{expire_in}))->strftime( "%a, %d %b %Y %H:%M:%S GMT" );
 ok($c->response->header('expires') && $c->response->header('expires') eq $expected_date_str,
    'expires in one hour');
 
