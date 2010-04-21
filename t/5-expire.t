@@ -50,7 +50,7 @@ $controller = $c->setup_component('MyApp::Controller::Js');
 # combine and check if expire header is set and correct (no expire_in is explicitly set)
 #
 $controller->do_combine($c, 'js1');
-my $expected_date_str = (DateTime->now + DateTime::Duration->new(seconds => $controller->{expire_in}))->strftime( "%a, %d %b %Y %H:%M:%S GMT" );
+my $expected_date_str = (DateTime->now + DateTime::Duration->new(seconds => $controller->{expire_in} || 0))->strftime( "%a, %d %b %Y %H:%M:%S GMT" );
 ok($c->response->header('expires') && $c->response->header('expires') eq $expected_date_str,
    'expires in "standard expire delta"');
 

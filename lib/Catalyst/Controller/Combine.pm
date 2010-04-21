@@ -414,7 +414,9 @@ sub _check_dependencies {
     #
     # add the file
     #
-    my $path = $c->path_to('root', $self->dir, $base_name)->resolve();
+    my $path = $c->path_to('root', $self->dir, $base_name);
+    eval { $path = $path->resolve() }; # windows dies here
+    $path = $path->cleanup() if ($@);
     
     # check for security violation
     Path::Class::dir($c->path_to('root'), $self->dir())->subsumes(Path::Class::file($path)->dir())
