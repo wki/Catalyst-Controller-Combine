@@ -1,6 +1,11 @@
 Things we could add
 -------------------
 
+- does it make sense to add a way to auto-generate CSS files from sass
+  using eg. compass?
+  http://github.com/chriseppstein/compass
+  if we do, do we have a way to cache files efficiently somewhere?
+
 - document examples for pseudo-versioning by adding a version-number into URL
 
 - looks like uri_for() magic stops working after some Moose version. find out.

@@ -37,4 +37,7 @@ lives_ok { $controller->do_combine($c, 'js1') } 'file inside root_dir lives';
 $c->response->body('');
 dies_ok { $controller->do_combine($c, 'js1', '../../../6-security.t') } 'file outside root_dir dies';
 
+$c->response->body('');
+lives_ok { $controller->do_combine($c, 'js1', '../../../xx_notexisting.js') } 'not existing file outside root_dir lives';
+
 done_testing;

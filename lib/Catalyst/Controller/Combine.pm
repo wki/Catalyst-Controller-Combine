@@ -2,14 +2,12 @@ package Catalyst::Controller::Combine;
 
 use Moose;
 # w/o BEGIN, :attrs will not work
-BEGIN { extends 'Catalyst::Controller'; };
+BEGIN { extends 'Catalyst::Controller' }
 
 use Path::Class ();
 use File::stat;
 use List::Util qw(max);
 use Text::Glob qw(match_glob);
-use DateTime;
-use DateTime::Duration;
 
 has dir       => (is => 'rw',
                   default => sub { 'static/' . shift->action_namespace },
@@ -136,7 +134,8 @@ A simple configuration of your Controller could look like this:
         # will be used if present in the package
         minifier => 'minify',
 
-        # should a HTTP expire header be set? This usually means, you have to change your filenames, if there a was change!
+        # should a HTTP expire header be set? This usually means, 
+        # you have to change your filenames, if there a was change!
         expire => 1,
 
         # time offset (in seconds), in which the file will expire
@@ -225,7 +224,10 @@ sub do_combine :Action {
 
             # do replacements if wanted
             if (exists($self->{replacement_for}->{$file_path})) {
-                my @replacement = ( @{$self->{replacement_for}->{$file_path}} ); # simple deep-copy
+                my @replacement = (
+                    # poor man's deep-copy
+                    @{$self->{replacement_for}->{$file_path}}
+                );
                 while (my ($regex, $replace) = splice(@replacement,0,2)) {
                     $file_content =~ s{$regex}{qq{qq{$replace}}}gmsee;
                 }
@@ -236,23 +238,23 @@ sub do_combine :Action {
             close($file);
             $mtime = max($mtime, (stat $file_path)->mtime);
         }
+        # silently ignore any errors that might occur
     }
 
-    die('no files given for combining') if (!$mtime);
+    die 'no files given for combining' if (!$mtime);
 
     #
     # deliver -- at least an empty line to make catalyst happy ;-)
     #
     my $minifier = $self->can($self->minifier)
-        || sub { $_[0]; }; # simple identity function
+        || sub { $_[0] }; # simple identity function
     $c->response->headers->content_type($self->mimetype)
         if ($self->mimetype);
     $c->response->headers->last_modified($mtime)
         if ($mtime);
 
     if ($self->{expire} && $self->{expire_in}) {
-        my $expire_timestamp = ( DateTime->now + DateTime::Duration->new( seconds => $self->{expire_in} ) )->epoch;
-        $c->response->headers->expires( $expire_timestamp );
+        $c->response->headers->expires(time() + $self->{expire_in});
     }
 
     $c->response->body($minifier->($response) . "\n");
@@ -372,7 +374,7 @@ sub _collect_files {
         my $base_name = $file;
         $base_name =~ s{\.$ext\z}{}xms;
 
-        $self->_check_dependencies($c, $base_name, $ext);
+        $self->_check_dependencies($c, $base_name, ['', ".$ext"]);
     }
 
     return;
@@ -385,7 +387,7 @@ sub _check_dependencies {
     my $self = shift;
     my $c = shift;
     my $base_name = shift;
-    my $ext = shift;
+    my $extensions = shift;
     my $depends = shift || 0;
 
     my $dependency_for = $self->depend;
@@ -407,42 +409,49 @@ sub _check_dependencies {
         my @depend_on = ref($dependency_for->{$base_name}) eq 'ARRAY'
                         ? @{$dependency_for->{$base_name}}
                         : $dependency_for->{$base_name};
-        $self->_check_dependencies($c, $_, $ext, 1)
+        $self->_check_dependencies($c, $_, $extensions, 1)
             for @depend_on;
     }
 
     #
-    # add the file
+    # add the file if existing
     #
-    my $path = $c->path_to('root', $self->dir, $base_name);
-    eval { $path = $path->resolve() }; # windows dies here
-    $path = $path->cleanup() if ($@);
-    
-    # check for security violation
-    Path::Class::dir($c->path_to('root'), $self->dir())->subsumes(Path::Class::file($path)->dir())
-        or die 'security violation - tried to open file outside of controllers directory: ' . $self->dir();
-    
-    foreach my $file_path ($path, "$path.$ext") {
-        if (-f $file_path) {
-            push @{$self->{parts}}, $base_name;
-            push @{$self->{files}}, $file_path;
-            $self->{seen}->{$base_name} = $depends;
-
-            # check replacements
-            return if (!$self->replace || ref($self->replace) ne 'HASH' || !scalar(keys(%{$self->replace})));
-            foreach my $glob (keys(%{$self->replace})) {
-                next if (!match_glob($glob, $base_name));
-                my $replacements = $self->replace->{$glob};
-                next if (!$replacements || ref($replacements) ne 'ARRAY' || !scalar(@{$replacements}));
-                push @{$self->{replacement_for}->{$file_path}}, @{$replacements};
-            }
-
-            # done
-            return;
+    my $dir = $c->path_to('root', $self->dir);
+    foreach my $file_path (map { $dir->file("$base_name$_") } @{$extensions}) {
+        next if (!-f $file_path);
+        
+        # the file we want exists. Time to do a security check
+        # hint: a call to resolve() will die under windows
+        #       if the path requested does not exist on the filesystem.
+        #       therefore, we check as late as possible
+        $dir->subsumes($file_path->resolve)
+            or die 'security violation - tried to access file outside of: '
+                   . $self->dir();
+        
+        # looks like we are secure -- are there any secret unicodes
+        # we forgot to double-check? *g*
+        push @{$self->{parts}}, $base_name;
+        push @{$self->{files}}, $file_path;
+        $self->{seen}->{$base_name} = $depends;
+        
+        # check replacements
+        return if (!$self->replace 
+                || ref($self->replace) ne 'HASH' 
+                || !scalar(keys(%{$self->replace})));
+        foreach my $glob (keys(%{$self->replace})) {
+            next if (!match_glob($glob, $base_name));
+            my $replacements = $self->replace->{$glob};
+            next if (!$replacements 
+                  || ref($replacements) ne 'ARRAY' 
+                  || !scalar(@{$replacements}));
+            push @{$self->{replacement_for}->{$file_path}}, @{$replacements};
         }
+        
+        # done
+        return;
     }
 
-    $c->log->warn("$base_name --> NOT EXISTING, ignored");
+    $c->log->warn("$base_name.* --> NOT EXISTING, ignored");
     return;
 }
 
