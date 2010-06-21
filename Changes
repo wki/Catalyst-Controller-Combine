@@ -1,6 +1,6 @@
 Revision history for Catalyst-Controller-Combine
 
-        2010-04-21
+0.12    2010-05-21
         * fixed a security hole reported and patched by Andreas Specht (ac0v)
           that allowed to use url-encoded path-parts to crawl along our
           file system and read files outside the intended directory.
@@ -9,7 +9,7 @@ Revision history for Catalyst-Controller-Combine
         * added a test to verify this.
         * simplified expire header handling.
           
-0.11    2010-03-23
+0.11    2010-04-01
         * fixed a bug that wrongly compared paths during test
           this made one test fail under MS-Windows.
           -- Thanks, CPAN-Testers!
@@ -18,7 +18,7 @@ Revision history for Catalyst-Controller-Combine
         * pulled forked changes by Phil Soehnlein
           introducing expires headers, Thanks.
 
-0.10    2010-03-19
+0.10    2010-03-27
         * eliminated trunk/ directory
         * moved to Module::Install
         * added a note about 'namespace::autoclean' and its side effects
