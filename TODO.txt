@@ -1,13 +1,6 @@
 Things we could add
 -------------------
 
-- allow some kind of 'include' directive in the config section:
-  $1 will contain a file to include
-  (will work recursively)
-    include => [
-        qr{\@import \s+ (?:url\s*\()? ["']? ([^"')]+) ["']? [)]? .*? ;}xms
-    ],
-
 - does it make sense to add a way to auto-generate CSS files from sass
   using eg. compass?
   http://github.com/chriseppstein/compass
@@ -16,6 +9,14 @@ Things we could add
 - document examples for pseudo-versioning by adding a version-number into URL
 
 - looks like uri_for() magic stops working after some Moose version. find out.
+
+### done.
+- allow some kind of 'include' directive in the config section:
+  $1 will contain a file to include
+  (will work recursively)
+    include => [
+        qr{\@import \s+ (?:url\s*\()? ["']? ([^"')]+) ["']? [)]? .*? ;}xms
+    ],
 
 ## done 2010-04-13 by Phil Soehnlein. 'Expires' is cool.
 - find out clever HTTP Headers to set.
