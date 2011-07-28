@@ -76,10 +76,10 @@ EOF
         $var{extra} = <<'EOF';
 
     #
-    #   execute \@import statements during combining
+    #   execute @import statements during combining
     #   CAUTION: media-types cannot get evaluated, everything is included!
     # include => [
-    #     qr{\\\@import \\s+ (?:url\\s*\\()? ["']? ([^"')]+) ["']? [)]? .*? ;}xms
+    #     qr{\@import \s+ (?:url\s*\()? ["']? ([^"')]+) ["']? [)]? .*? ;}xms
     # ],
 EOF
         $var{sample_minifier} = <<'EOF';
