@@ -70,7 +70,6 @@ Catalyst::Controller::Combine - Combine JS/CSS Files
     # will deliver all CSS files concatenated (in Css-Controller)
     <link rel="stylesheet" type="text/css" href="/css/file1/file2/.../filex.css" />
 
-
     # in the generated controller you may add this to allow minification
     # the trick behind is the existence of a sub named 'minify'
     # inside your Controller.
@@ -165,29 +164,6 @@ TODO: writeme...
 
 =head1 METHODS
 
-# =head2 BUILD
-# 
-# constructor for this Moose-driven class
-# 
-# =cut
-# 
-# sub BUILD {
-#     my $self = shift;
-#     my $c = $self->_app;
-# 
-#     ### THIS STUPID BLOCK BREAKS TESTS UNDER DIFFERENT C::MOP / MOOSE VERSIONS...
-#     ### $self->dir wants to know action_namespace...
-#     # $c->log->warn(ref($self) . " - directory '" . $self->dir . "' not present.")
-#     #     if (!-d $c->path_to('root', $self->dir));
-#     #
-#     # $c->log->debug(ref($self) . " - " .
-#     #                "directory: '" . $self->dir . "', " .
-#     #                "extension: '" . $self->extension . "', " .
-#     #                "mimetype: '" . $self->mimetype . "', " .
-#     #                "minifier: '" . $self->minifier . "'")
-#     #     if ($c->debug);
-# }
-
 =head2 do_combine :Action
 
 the C<do_combine> Action-method may be used like this (eg in YourApp:Controller:Js):
@@ -215,6 +191,9 @@ Thus, inside your Controller a simple
     use CSS::Minifier::XS qw(minify);
 
 will do the job and auto-minify the stream.
+
+If you specify an C<include> configuration option you also could recursively
+include other files into the generated stream. (Think about @import in css files).
 
 =cut
 
