@@ -28,53 +28,81 @@ sub mk_compclass {
     my $ext = lc($helper->{name}) || 'xx';
     $ext =~ s{\A .* ::}{}xms;
     
-    my $mimetype = 'text/plain';
-    my $minifier = '';
-    my $depend = '';
-    my $replace = '';
+    my %var = (ext => $ext, replace => "\n", extra => "\n");
     if ($ext eq 'js')  { 
-        $mimetype = 'application/javascript';
-        $minifier = "# uncomment if desired and do not import namespace::autoclean!\n# use JavaScript::Minifier::XS qw(minify);";
+        $var{mimetype} = 'application/javascript';
+        $var{minifier} = "# uncomment if desired and do not import namespace::autoclean!\n# use JavaScript::Minifier::XS qw(minify);";
 
-        $depend =
-        "    # aid for the prototype users\n" .
-        "    #   --> place all .js files directly into root/static/js!\n" .
-        "    #     scriptaculous => 'prototype',\n" .
-        "    #     builder       => 'scriptaculous',\n" .
-        "    #     effects       => 'scriptaculous',\n" .
-        "    #     dragdrop      => 'effects',\n" .
-        "    #     slider        => 'scriptaculous',\n" .
-        "    #     default       => 'dragdrop',\n" .
-        "\n" .
-        "    # aid for the jQuery users\n" .
-        "    #   --> place all .js files including version-no directly into root/static/js!\n" .
-        "    #     'jquery.metadata'     => 'jquery-1.3.2'\n",
-        "    #     'jquery.form-2.36'    => 'jquery-1.3.2'\n",
-        "    #     'jquery.validate-1.6' => [qw(jquery.form-2.36 jquery.metadata)]\n",
-        "    #     default               => [qw(jquery.validate-1.6 jquery-ui-1.7.2)]",
+        $var{depend} = <<EOF;
+
+    # aid for the prototype users (site.js is main file)
+    #   --> place all .js files directly into root/static/js!
+    #     scriptaculous => 'prototype',
+    #     builder       => 'scriptaculous',
+    #     effects       => 'scriptaculous',
+    #     dragdrop      => 'effects',
+    #     slider        => 'scriptaculous',
+    #     site          => 'dragdrop',
+    #
+    # aid for the jQuery users (site.js is main file)
+    #   --> place all .js files including version-no directly into root/static/js!
+    #     'jquery.metadata'     => 'jquery-1.6.2'
+    #     'jquery.form-2.36'    => 'jquery-1.6.2'
+    #     'jquery.validate-1.6' => [qw(jquery.form-2.36 jquery.metadata)]
+    #     site                  => [qw(jquery.validate-1.6 jquery-ui-1.8.1)]
+EOF
+        $var{sample_minifier} = <<'EOF';
+
+#    usually you will do more :-)
+#    $text =~ s{\\s+}{ }xmsg;
+EOF
     }
     if ($ext eq 'css') { 
-        $mimetype = 'text/css'; 
-        $minifier = "# uncomment if desired and do not import namespace::autoclean!\n# use CSS::Minifier::XS qw(minify);";
+        $var{mimetype} = 'text/css'; 
+        $var{minifier} = "# uncomment if desired and do not import namespace::autoclean!\n# use CSS::Minifier::XS qw(minify);";
 
-        $depend =
-        "    #     layout  => 'jquery-ui', \n" .
-        "    #     default => 'layout',";
+        $var{depend} = <<EOF;
 
-        $replace =
-        "    #                    # change jQuery UI's links to images\n" .
-        "    #                    # assumes that all images for jQuery UI reside under static/images\n" .
-        "    #     'jquery-ui' => [ qr'url\(images/' => 'url(/static/images/' ],";
+    #  (site.css is main file)
+    #     page    => [ qw(forms table) ],
+    #     site    => [ qw(reset page jquery-ui-1.8.13) ],
+EOF
+        $var{replace} = <<EOF;
+
+    #                    # change jQuery UI's links to images
+    #                    # assumes that all images for jQuery UI reside under static/images
+    #     'jquery-ui' => [ qr'url\(images/' => 'url(/static/images/' ],
+EOF
+        $var{extra} = <<'EOF';
+
+    #
+    #   execute \@import statements during combining
+    #   CAUTION: media-types cannot get evaluated, everything is included!
+    # include => [
+    #     qr{\\\@import \\s+ (?:url\\s*\\()? ["']? ([^"')]+) ["']? [)]? .*? ;}xms
+    # ],
+EOF
+        $var{sample_minifier} = <<'EOF';
+
+#     #
+#     # let `sass` convert our scss-style into css
+#     # borrowed from Tatsuhiko Miyagawa's Plack::Middleware::File::Sass
+#     #
+#     
+#     use IPC::Open3 'open3';
+#     
+#     my $pid = open3(my $in, my $out, my $err,
+#                     '/usr/bin/sass', '--stdin', '--scss');
+#     print $in $text;
+#     close $in;
+#     
+#     $text = join '', <$out>;
+#     waitpid $pid, 0;
+EOF
+
     }
     
-    $helper->render_file( 'compclass', $file, 
-                          {
-                              ext       => $ext,
-                              mimetype  => $mimetype,
-                              minifier  => $minifier,
-                              depend    => $depend,
-                              replace   => $replace,
-                          } );
+    $helper->render_file( 'compclass', $file, \%var );
 }
 
 =head1 SEE ALSO
@@ -113,19 +141,20 @@ __PACKAGE__->config(
     #
     #   specify dependencies (without file extensions)
     # depend => {
-[% depend %]
+[%- depend -%]
     # },
     #
     #   optionally specify replacements to get done
     # replace => {
-[% replace %]
+[%- replace -%]
     # },
+[%- extra -%]
     #
     #   will be guessed from extension
     # mimetype => '[% mimetype %]',
     #
-    #   if you want another minifier change this
-    # minifier => 'minify',
+    #   if you want a different minifier function name (default: 'minify')
+    # minifier => 'my_own_minify',
     #
     #   uncomment if you want to get the 'expire' header set (default:off)
     # expire => 1,
@@ -143,6 +172,17 @@ __PACKAGE__->config(
 #     my $c = shift;
 #     
 #     $c->forward('do_combine');
+# }
+
+#
+# optionally, define a minifier routine of your own
+#
+# sub minify :Private {
+#     my $text = shift;
+#
+[%- sample_minifier -%]
+#
+#     return $text;
 # }
 
 =head1 NAME

@@ -12,27 +12,39 @@ use Text::Glob qw(match_glob);
 has dir       => (is => 'rw',
                   default => sub { 'static/' . shift->action_namespace },
                   lazy => 1);
+
 has extension => (is => 'rw',
                   default => sub { shift->action_namespace },
                   lazy => 1);
+
 has depend    => (is => 'rw',
                   default => sub { return {} });
+
 has mimetype  => (is => 'rw',
                   default => sub {
                                     my $ext = shift->extension;
-
                                     return $ext eq 'js'  ? 'application/javascript'
                                          : $ext eq 'css' ? 'text/css'
                                          : 'text/plain';
                                  },
                   lazy => 1);
+
 has replace   => (is => 'rw',
                   default => sub { {} },
-                  lazy => 1);
+                  lazy => 1,
+                  predicate => 'has_replacement');
+
+has include   => (is => 'rw',
+                  default => sub { [] },
+                  lazy => 1,
+                  predicate => 'has_include');
+
 has minifier  => (is => 'rw',
                   default => 'minify');
+
 has expire    => (is => 'rw',
                   default => 0);
+
 has expire_in => (is => 'rw',
                   default => 60 * 60 * 24 * 365 * 3); # 3 years
 
@@ -153,28 +165,28 @@ TODO: writeme...
 
 =head1 METHODS
 
-=head2 BUILD
-
-constructor for this Moose-driven class
-
-=cut
-
-sub BUILD {
-    my $self = shift;
-    my $c = $self->_app;
-
-    ### THIS STUPID BLOCK BREAKS TESTS UNDER DIFFERENT C::MOP / MOOSE VERSIONS...
-    ### $self->dir wants to know action_namespace...
-    # $c->log->warn(ref($self) . " - directory '" . $self->dir . "' not present.")
-    #     if (!-d $c->path_to('root', $self->dir));
-    #
-    # $c->log->debug(ref($self) . " - " .
-    #                "directory: '" . $self->dir . "', " .
-    #                "extension: '" . $self->extension . "', " .
-    #                "mimetype: '" . $self->mimetype . "', " .
-    #                "minifier: '" . $self->minifier . "'")
-    #     if ($c->debug);
-}
+# =head2 BUILD
+# 
+# constructor for this Moose-driven class
+# 
+# =cut
+# 
+# sub BUILD {
+#     my $self = shift;
+#     my $c = $self->_app;
+# 
+#     ### THIS STUPID BLOCK BREAKS TESTS UNDER DIFFERENT C::MOP / MOOSE VERSIONS...
+#     ### $self->dir wants to know action_namespace...
+#     # $c->log->warn(ref($self) . " - directory '" . $self->dir . "' not present.")
+#     #     if (!-d $c->path_to('root', $self->dir));
+#     #
+#     # $c->log->debug(ref($self) . " - " .
+#     #                "directory: '" . $self->dir . "', " .
+#     #                "extension: '" . $self->extension . "', " .
+#     #                "mimetype: '" . $self->mimetype . "', " .
+#     #                "minifier: '" . $self->minifier . "'")
+#     #     if ($c->debug);
+# }
 
 =head2 do_combine :Action
 
@@ -217,47 +229,55 @@ sub do_combine :Action {
     #
     my $mtime = 0;
     my $response = '';
-    foreach my $file_path (@{$self->{files}}) {
-        if (open(my $file, '<', $file_path)) {
-            local $/ = undef;
-            my $file_content = <$file>;
-
-            # do replacements if wanted
-            if (exists($self->{replacement_for}->{$file_path})) {
-                my @replacement = (
-                    # poor man's deep-copy
-                    @{$self->{replacement_for}->{$file_path}}
-                );
-                while (my ($regex, $replace) = splice(@replacement,0,2)) {
-                    $file_content =~ s{$regex}{qq{qq{$replace}}}gmsee;
-                }
+    foreach my $file (@{$self->{files}}) {
+        my $file_content = $self->_file_contents($file, \$mtime);
+        
+        if (exists($self->{replacement_for}->{$file})) {
+            my @replacement = (
+                # poor man's deep-copy, splice below is destructive
+                @{$self->{replacement_for}->{$file}}
+            );
+            while (my ($regex, $replace) = splice(@replacement,0,2)) {
+                $file_content =~ s{$regex}{qq{qq{$replace}}}gmsee;
             }
-
-            # append to output stream
-            $response .= $file_content;
-            close($file);
-            $mtime = max($mtime, (stat $file_path)->mtime);
         }
-        # silently ignore any errors that might occur
+        
+        $response .= $file_content;
     }
 
-    die 'no files given for combining' if (!$mtime);
+    die 'no files given for combining' if !$mtime;
 
     #
     # deliver -- at least an empty line to make catalyst happy ;-)
     #
     my $minifier = $self->can($self->minifier)
-        || sub { $_[0] }; # simple identity function
+        || \&_do_not_modify;
     $c->response->headers->content_type($self->mimetype)
-        if ($self->mimetype);
+        if $self->mimetype;
     $c->response->headers->last_modified($mtime)
-        if ($mtime);
-
-    if ($self->{expire} && $self->{expire_in}) {
-        $c->response->headers->expires(time() + $self->{expire_in});
-    }
+        if $mtime;
+    $c->response->headers->expires(time() + $self->expire_in)
+        if $self->expire && $self->expire_in;
 
     $c->response->body($minifier->($response) . "\n");
+}
+
+sub _do_not_modify { $_[0] };
+
+sub _file_contents {
+    my $self = shift;
+    my $file = shift;
+    my $mtime_ref = shift;
+    
+    my $file_contents = $file->slurp;
+    $$mtime_ref = max($$mtime_ref, (stat $file)->mtime);
+    
+    if ($self->has_include) {
+        $file_contents =~ s{$_}{ $self->_file_contents($file->dir->file($1), $mtime_ref) }exmsg
+            for @{$self->include}
+    }
+    
+    return $file_contents;
 }
 
 =head2 default :Path

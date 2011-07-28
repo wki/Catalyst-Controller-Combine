@@ -1,6 +1,13 @@
 Things we could add
 -------------------
 
+- allow some kind of 'include' directive in the config section:
+  $1 will contain a file to include
+  (will work recursively)
+    include => [
+        qr{\@import \s+ (?:url\s*\()? ["']? ([^"')]+) ["']? [)]? .*? ;}xms
+    ],
+
 - does it make sense to add a way to auto-generate CSS files from sass
   using eg. compass?
   http://github.com/chriseppstein/compass
