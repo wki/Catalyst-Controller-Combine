@@ -1,6 +1,14 @@
 Things we could add
 -------------------
 
+- include directive is flexible but ugly.
+  allow either a name for a directive eg. @import or #include
+  or a regular expression as we have now.
+  allow a string or an array-ref
+
+- add a postprocess directive allowing to use eg. scss
+  Postprocessing happens before minifiying
+
 - does it make sense to add a way to auto-generate CSS files from sass
   using eg. compass?
   http://github.com/chriseppstein/compass
