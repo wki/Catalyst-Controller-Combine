@@ -1,11 +1,10 @@
+use strict;
+use warnings;
 use Test::More;
 use Test::Exception;
 use Catalyst ();
 use FindBin;
 use DateTime;
-use DateTime::Duration;
-
-
 
 # a simple package
 {
@@ -45,27 +44,37 @@ MyApp::Controller::Js->config->{expire} = 1;
 $controller = $c->setup_component('MyApp::Controller::Js');
 
 
-
 #
 # combine and check if expire header is set and correct (no expire_in is explicitly set)
 #
-$controller->do_combine($c, 'js1');
-my $expected_date_str = (DateTime->now + DateTime::Duration->new(seconds => $controller->{expire_in} || 0))->strftime( "%a, %d %b %Y %H:%M:%S GMT" );
-ok($c->response->header('expires') && $c->response->header('expires') eq $expected_date_str,
-   'expires in "standard expire delta"');
+{
+	no warnings 'redefine';
+    my $now = DateTime->now( time_zone => 'floating' );
+	my $test_date_time = DateTime->new(
+		year => 2012, month => 1, day => 4,
+		hour => 12, minute => 13, second => 14, 
+	);
+    
+	local *DateTime::now = sub { return $test_date_time->clone };
+    
+    $controller->do_combine($c, 'js1');
+    my $expected_date =
+		$test_date_time->clone
+                       ->add(seconds => $controller->{expire_in} || 0)
+                       ->strftime('%a, %d %b %Y %H:%M:%S GMT');
+    is $c->response->header('expires'), $expected_date, 'expired header date is OK 1';
 
+    # set expiry to 1 hour
+    MyApp::Controller::Js->config->{expire_in} = 60 * 60;
+    $controller = $c->setup_component('MyApp::Controller::Js');
 
-
-#
-# combine and check if expire header is set and correct (expire_in = 60 minutes)
-#
-MyApp::Controller::Js->config->{expire_in} = 60 * 60; # one hour
-$controller = $c->setup_component('MyApp::Controller::Js');
-$controller->do_combine($c, 'js1');
-$expected_date_str = (DateTime->now + DateTime::Duration->new(seconds => MyApp::Controller::Js->config->{expire_in}))->strftime( "%a, %d %b %Y %H:%M:%S GMT" );
-ok($c->response->header('expires') && $c->response->header('expires') eq $expected_date_str,
-   'expires in one hour');
-
+    $controller->do_combine($c, 'js1');
+    $expected_date =
+		$test_date_time->clone
+		               ->add(seconds => 3600)
+		               ->strftime('%a, %d %b %Y %H:%M:%S GMT');
+    is $c->response->header('expires'), $expected_date, 'expired header date is OK 2';
+}
 
 
 done_testing;
