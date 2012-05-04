@@ -1,6 +1,6 @@
 Revision history for Catalyst-Controller-Combine
 
-        2012-05-04
+0.15    2012-05-04
         * modified the handling of dir. It is resolved now in order to
           allow ".." containing config settings without firing the security
           violation-error.
