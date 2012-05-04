@@ -1,5 +1,10 @@
 Revision history for Catalyst-Controller-Combine
 
+        2012-05-04
+        * modified the handling of dir. It is resolved now in order to
+          allow ".." containing config settings without firing the security
+          violation-error.
+
 0.14    2012-02-20
         * fixed date arithmetic to only use DateTime instead of time()
           neccesary due to a testing failure with a rounding problem
