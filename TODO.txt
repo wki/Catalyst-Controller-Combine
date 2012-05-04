@@ -42,3 +42,14 @@ Things we could add
         'jquery-ui' => [ ... => ... ],
     },
 
+--------------
+
+package My::Controller::Js;
+
+BEGIN { extends 'Catalyst::Controller::Combine' }
+with 'Catalyst::Controller::Combine::Role::Whatever';
+
+interception of
+  - dependency generation
+  - contents of a single file after loading
+  - contents of summary stream

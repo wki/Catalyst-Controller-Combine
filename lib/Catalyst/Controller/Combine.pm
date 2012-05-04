@@ -418,7 +418,7 @@ sub _check_dependencies {
     #
     # add the file if existing
     #
-    my $dir = $c->path_to('root', $self->dir);
+    my $dir = $c->path_to('root', $self->dir)->resolve;
     foreach my $file_path (map { $dir->file("$base_name$_") } @{$extensions}) {
         next if (!-f $file_path);
         
