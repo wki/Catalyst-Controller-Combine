@@ -9,3 +9,4 @@ inc/
 *.bak
 Catalyst-Controller-Combine-*
 Catalyst-Controller-Combine-*/
+.build/
