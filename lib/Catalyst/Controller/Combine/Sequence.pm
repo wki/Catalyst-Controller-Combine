@@ -58,6 +58,8 @@ sub append {
     my $self = shift;
 
     push @{ $self->parts }, grep defined, @_;
+
+    return $self; # allow chaining
 }
 
 =head2 debug

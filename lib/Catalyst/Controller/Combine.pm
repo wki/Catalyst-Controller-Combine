@@ -1,14 +1,11 @@
 package Catalyst::Controller::Combine;
-
 use Moose;
-# w/o BEGIN, :attrs will not work
-BEGIN { extends 'Catalyst::Controller' }
-
-use Path::Class ();
-use File::stat;
-use List::Util qw(max);
-use Text::Glob qw(match_glob);
 use DateTime;
+use Digest::MD5 'md5_hex';
+use aliased 'Catalyst::Controller::Combine::Combiner';
+
+# needed to make :attrs work
+BEGIN { extends 'Catalyst::Controller' }
 
 has dir       => (is => 'rw',
                   default => sub { 'static/' . shift->action_namespace },
@@ -146,7 +143,7 @@ A simple configuration of your Controller could look like this:
         # will be used if present in the package
         minifier => 'minify',
 
-        # should a HTTP expire header be set? This usually means, 
+        # should a HTTP expire header be set? This usually means,
         # you have to change your filenames, if there a was change!
         expire => 1,
 
@@ -200,32 +197,9 @@ include other files into the generated stream. (Think about @import in css files
 
 sub do_combine :Action {
     my $self = shift;
-    my $c = shift;
+    my $c    = shift;
 
-    $self->_collect_files($c, @_);
-
-    #
-    # concatenate
-    #
-    my $mtime = 0;
-    my $response = '';
-    foreach my $file (@{$self->{files}}) {
-        my $file_content = $self->_file_contents($file, \$mtime);
-        
-        if (exists($self->{replacement_for}->{$file})) {
-            my @replacement = (
-                # poor man's deep-copy, splice below is destructive
-                @{$self->{replacement_for}->{$file}}
-            );
-            while (my ($regex, $replace) = splice(@replacement,0,2)) {
-                $file_content =~ s{$regex}{qq{qq{$replace}}}gmsee;
-            }
-        }
-        
-        $response .= $file_content;
-    }
-
-    die 'no files given for combining' if !$mtime;
+    my $response = $self->_combine($c, @_);
 
     #
     # deliver -- at least an empty line to make catalyst happy ;-)
@@ -234,9 +208,6 @@ sub do_combine :Action {
         || \&_do_not_modify;
     $c->response->headers->content_type($self->mimetype)
         if $self->mimetype;
-    $c->response->headers->last_modified($mtime)
-        if $mtime;
-    # $c->response->headers->expires(time() + $self->expire_in)
     # looks complicated but makes this routine testable...
     $c->response->headers->expires(DateTime->now->add(seconds => $self->expire_in)->epoch)
         if $self->expire && $self->expire_in;
@@ -244,23 +215,45 @@ sub do_combine :Action {
     $c->response->body($minifier->($response) . "\n");
 }
 
-sub _do_not_modify { $_[0] };
-
-sub _file_contents {
+sub _combine {
     my $self = shift;
-    my $file = shift;
-    my $mtime_ref = shift;
-    
-    my $file_contents = $file->slurp;
-    $$mtime_ref = max($$mtime_ref, (stat $file)->mtime);
-    
-    if ($self->has_include) {
-        $file_contents =~ s{$_}{ $self->_file_contents($file->dir->file($1), $mtime_ref) }exmsg
-            for @{$self->include}
-    }
-    
-    return $file_contents;
+    my $c    = shift;
+
+    return Combiner->new(
+        ext          => $self->ext,
+        dir          => $c->path_to('root', $self->dir)->resolve,
+        dependencies => $self->_curried_coderef_dependencies($c),
+        replacements => $self->replace,
+        include      => $self->include,
+    )->combine(@_);
 }
+
+sub _curried_coderef_dependencies {
+    my ($self, $c);
+    
+    my %depencies;
+    $dependencies{$_} = [
+        map { 
+            ref eq 'HASH' && exists $_->{type} && lc $_->{type} eq 'callback'
+                ? $self->_curry_coderef($c, $_)
+                : $_
+        }
+        map { ref eq 'ARRAY' ? @$_ : $_ }
+        $self->depend->{$_}
+    ]
+        for keys %{$self->depend};
+}
+
+sub _curry_coderef {
+    my ($self, $c, $hashref) = @_;
+    
+    my $callback = $hashref->{callback};
+    my $curried_sub = sub { $self->$callback($c, @_) };
+    
+    return { %$hashref, callback => $curried_sub };
+}
+
+sub _do_not_modify { $_[0] };
 
 =head2 default :Path
 
@@ -332,129 +325,30 @@ the time needed during development.
 
 sub uri_for :Private {
     my $self = shift;
-    my $c = shift;
+    my $c    = shift;
     my $path = shift; # actually an action...
     my @args = @_;
 
     my $actual_path = $c->dispatcher->uri_for_action($path);
     $actual_path = '/' if $actual_path eq '';
 
-    #
-    # generate max mtime as query value for the uri
-    #
-    $self->_collect_files($c, @args);
-    my $mtime = max map { (stat $_)->mtime } @{$self->{files}};
-
-    #
-    # get rid of redundancies as dependency rules will
-    # add them in at fulfilment of the real request...
-    #
-    my @parts = grep {!$self->{seen}->{$_}} @{$self->{parts}};
-    $parts[-1] .= '.' . $self->extension if (scalar(@parts));
-
-    #
-    # CAUTION: $actual_path must get stringified!
-    # otherwise bad loops and misbehavior would occur.
-    #
-
-    $c->uri_for("$actual_path", @parts, {m => $mtime});
+    my $hash = calculate_hash($self->_combine($c, @parts));
+    
+    $c->uri_for("$actual_path", @parts, {h => $hash});
 }
 
-#
-# collect all files
-#
-sub _collect_files {
-    my $self = shift;
-    my $c = shift;
+=head2 calculate_hash ( $content )
 
-    my $ext = $self->extension;
-    $self->{parts} = [];            # list of plain file names
-    $self->{files} = [];            # list of full paths
-    $self->{replacement_for} = {};  # replacements for every full path
-    $self->{seen}  = {}; # easy lookup of parts and count of dependencies
-    foreach my $file (@_) {
-        my $base_name = $file;
-        $base_name =~ s{\.$ext\z}{}xms;
+returns a hash from a given content. The default implementation returns the
+first 10 digits of a MD5 hash. Please overload if a different hahavior is
+wanted.
 
-        $self->_check_dependencies($c, $base_name, ['', ".$ext"]);
-    }
+=cut
 
-    return;
-}
-
-#
-# check dependencies on files
-#
-sub _check_dependencies {
-    my $self = shift;
-    my $c = shift;
-    my $base_name = shift;
-    my $extensions = shift;
-    my $depends = shift || 0;
-
-    my $dependency_for = $self->depend;
-
-    #
-    # check if we already saw this file. Update dependency flag
-    #
-    if (exists($self->{seen}->{$base_name})) {
-        $self->{seen}->{$base_name} ||= $depends;
-        return;
-    }
-
-    if ($dependency_for &&
-        ref($dependency_for) eq 'HASH' &&
-        exists($dependency_for->{$base_name})) {
-        #
-        # we have a dependency -- resolve it.
-        #
-        my @depend_on = ref($dependency_for->{$base_name}) eq 'ARRAY'
-                        ? @{$dependency_for->{$base_name}}
-                        : $dependency_for->{$base_name};
-        $self->_check_dependencies($c, $_, $extensions, 1)
-            for @depend_on;
-    }
-
-    #
-    # add the file if existing
-    #
-    my $dir = $c->path_to('root', $self->dir)->resolve;
-    foreach my $file_path (map { $dir->file("$base_name$_") } @{$extensions}) {
-        next if (!-f $file_path);
-        
-        # the file we want exists. Time to do a security check
-        # hint: a call to resolve() will die under windows
-        #       if the path requested does not exist on the filesystem.
-        #       therefore, we check as late as possible
-        $dir->subsumes($file_path->resolve)
-            or die 'security violation - tried to access file outside of: '
-                   . $self->dir();
-        
-        # looks like we are secure -- are there any secret unicodes
-        # we forgot to double-check? *g*
-        push @{$self->{parts}}, $base_name;
-        push @{$self->{files}}, $file_path;
-        $self->{seen}->{$base_name} = $depends;
-        
-        # check replacements
-        return if (!$self->replace 
-                || ref($self->replace) ne 'HASH' 
-                || !scalar(keys(%{$self->replace})));
-        foreach my $glob (keys(%{$self->replace})) {
-            next if (!match_glob($glob, $base_name));
-            my $replacements = $self->replace->{$glob};
-            next if (!$replacements 
-                  || ref($replacements) ne 'ARRAY' 
-                  || !scalar(@{$replacements}));
-            push @{$self->{replacement_for}->{$file_path}}, @{$replacements};
-        }
-        
-        # done
-        return;
-    }
-
-    $c->log->warn("$base_name.* --> NOT EXISTING, ignored");
-    return;
+sub calculate_hash {
+    my ($self, $content) = @_;
+    
+    return substr(0,10, md5_hex($content));
 }
 
 =head1 GOTCHAS

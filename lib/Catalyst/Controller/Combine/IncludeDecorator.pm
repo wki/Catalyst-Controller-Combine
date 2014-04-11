@@ -2,7 +2,7 @@ package Catalyst::Controller::Combine::IncludeDecorator;
 use Moose;
 use namespace::autoclean;
 
-extends 'Catalyst::Controller::Combine::Part';
+extends 'Catalyst::Controller::Combine::Decorator';
 
 =head1 NAME
 
@@ -18,29 +18,18 @@ Catalyst::Controller::Combine::IncludeDecorator - handle include replacements
 
 =head2 include
 
-a list of {search, replace} hashrefs.
+the includes to search and replace. See L<Combiner> for a explanation.
 
 =cut
 
 has include => (
     is      => 'ro',
     traits  => ['Array'],
-    isa     => 'ArrayRef', # of { search => ..., replace => ... }
+    isa     => 'ArrayRef', # of String | Regex
     default => sub { [] },
     handles => { 
         all_includes => 'elements',
     },
-);
-
-=head2 part
-
-a part for obtaining content before the replacements are made
-
-=cut
-
-has part => ( 
-    is  => 'ro',
-    isa => 'Catalyst::Controller::Combine::Part',
 );
 
 =head2 combiner
@@ -69,12 +58,9 @@ sub content {
     my $self    = shift;
     my $content = $self->part->content;
 
-    foreach my $include ( $self->all_includes ) {
-        $content =~
-            s{ $include->{search} }
-             { $self->combiner->combine($include->{replace} // $1) }exmsg;
-    }
-
+    $content =~ s{$_}{$self->combiner->combine($1)}exmsg
+        for $self->all_includes;
+    
     return $content;
 }
 

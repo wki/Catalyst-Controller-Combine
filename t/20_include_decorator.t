@@ -7,9 +7,9 @@ use ok 'Catalyst::Controller::Combine::IncludeDecorator';
 my $class = 'Catalyst::Controller::Combine::IncludeDecorator';
 
 {
-    package C;
+    package MockCombiner;
     use Moose;
-    sub combine { $_->[1] }
+    sub combine { "($_[1])" } # simply returns '($path)'
     
     package X;
     use Moose;
@@ -17,12 +17,32 @@ my $class = 'Catalyst::Controller::Combine::IncludeDecorator';
     has content => (is => 'ro', isa => 'Str');
 }
 
-# no include --> unchanged
+note 'no include';
+{
+    my $include_decorator = $class->new(
+        part     => X->new(content => 'x content'),
+        combiner => MockCombiner->new,
+        # no include !
+    );
+    
+    is $include_decorator->content,
+        'x content',
+        'content unchanged';
+}
 
-# include with empty replacement -> just replaced
-
-# include with file name replacement -> replace
-
-
+note 'with include';
+{
+    my $include_decorator = $class->new(
+        part     => X->new(content => 'before<include "blabla">after'),
+        combiner => MockCombiner->new,
+        include  => [
+            qr{<include\s*"([^"]+)"\s*>}xms,
+        ],
+    );
+    
+    is $include_decorator->content,
+        'before(blabla)after',
+        'included content';
+}
 
 done_testing;
