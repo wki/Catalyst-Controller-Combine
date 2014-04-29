@@ -152,15 +152,11 @@ sub combine {
     my $self = shift;
 
     my $sequence = Sequence->new;
-    $sequence->append($self->part($_)) for @_;
+    $sequence->append($self->part($_))
+        for map { my $part = $_; $part =~ s{[.]${\$self->ext} \z}{}xms; $part }
+            @_;
 
     return $sequence->content;
-    
-    # looks better?
-    # return Sequence
-    #     ->new
-    #     ->append(map { $self->part($_) } @_)
-    #     ->content;
 }
 
 =head2 debug ( $file1, $file2, ... )

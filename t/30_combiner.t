@@ -137,4 +137,5 @@ note 'usage';
     
     is $combiner->combine('css2'), '/* base.css *//* css2.css */', 'css2';
 }
+
 done_testing;

@@ -208,6 +208,7 @@ sub do_combine :Action {
         || \&_do_not_modify;
     $c->response->headers->content_type($self->mimetype)
         if $self->mimetype;
+
     # looks complicated but makes this routine testable...
     $c->response->headers->expires(DateTime->now->add(seconds => $self->expire_in)->epoch)
         if $self->expire && $self->expire_in;
@@ -219,19 +220,31 @@ sub _combine {
     my $self = shift;
     my $c    = shift;
 
+    my %replacement_for_glob;
+    foreach my $file_glob (keys %{$self->replace}) {
+        my @replacements = @{$self->replace->{$file_glob}};
+        $replacement_for_glob{$file_glob} = [];
+        while (my ($search, $replace) = splice @replacements, 0, 2) {
+            push @{$replacement_for_glob{$file_glob}}, {
+                search  => $search,
+                replace => $replace,
+            };
+        }
+    }
+
     return Combiner->new(
-        ext          => $self->ext,
+        ext          => $self->extension,
         dir          => $c->path_to('root', $self->dir)->resolve,
         dependencies => $self->_curried_coderef_dependencies($c),
-        replacements => $self->replace,
+        replacements => \%replacement_for_glob,
         include      => $self->include,
     )->combine(@_);
 }
 
 sub _curried_coderef_dependencies {
-    my ($self, $c);
+    my ($self, $c) = @_;
     
-    my %depencies;
+    my %dependencies;
     $dependencies{$_} = [
         map { 
             ref eq 'HASH' && exists $_->{type} && lc $_->{type} eq 'callback'
@@ -242,6 +255,8 @@ sub _curried_coderef_dependencies {
         $self->depend->{$_}
     ]
         for keys %{$self->depend};
+    
+    return \%dependencies;
 }
 
 sub _curry_coderef {
@@ -332,9 +347,8 @@ sub uri_for :Private {
     my $actual_path = $c->dispatcher->uri_for_action($path);
     $actual_path = '/' if $actual_path eq '';
 
-    my $hash = calculate_hash($self->_combine($c, @parts));
-    
-    $c->uri_for("$actual_path", @parts, {h => $hash});
+    my $hash = $self->calculate_hash($self->_combine($c, @args));
+    $c->uri_for("$actual_path", @args, {h => $hash});
 }
 
 =head2 calculate_hash ( $content )
@@ -348,7 +362,7 @@ wanted.
 sub calculate_hash {
     my ($self, $content) = @_;
     
-    return substr(0,10, md5_hex($content));
+    return substr(md5_hex($content), 0,10);
 }
 
 =head1 GOTCHAS
