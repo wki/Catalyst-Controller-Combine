@@ -113,7 +113,7 @@ has include => (
     },
 );
 
-=head ext
+=head2 ext
 
 the default file extension to append
 
