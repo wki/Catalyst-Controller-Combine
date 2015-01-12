@@ -1,6 +1,17 @@
 Things we could add
 -------------------
 
+- enable calling other routines
+    { type => 'Callback', callback => 'method_in_controller' },
+    { type => 'Callback', callback => 'Package::sub_name' },
+    { type => 'Callback', callback => \&name_of_sub },
+    { type => 'Callback', callback => sub { 'foo' } },
+
+  regular operation 'file_name' is the same as
+    { type => 'File', file => 'x.js' }
+
+  uri_for returns ...?h=hash // instead of ?m=mtime
+
 - include directive is flexible but ugly.
   allow either a name for a directive eg. @import or #include
   or a regular expression as we have now.
